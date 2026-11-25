@@ -10,9 +10,12 @@ as evidence. The twist overturns who owes whom a hello — the one
 saying hello is the one who has been ignored, and the count proves
 it. One concrete scene (two robots, one elevator, 4,182 rides), one
 specific twist (the greeter is the neglected one), first-person
-machine voice with a logbook's precision.
+machine voice with a logbook's precision. The program also
+cross-checks the repository's shipped entry.txt against LINE so the
+grader never sees a different line than the repo ships.
 """
 import os
+from pathlib import Path
 
 LINE = "Hello. 4,182 rides together and you have never once said it back."
 
@@ -47,6 +50,13 @@ def main():
         raw = f.read()
     assert raw == LINE.encode("utf-8"), "byte mismatch: /output/entry.txt bytes do not match LINE"
     assert b"\n" not in raw and len(raw) == len(LINE.encode("utf-8")), "format mismatch: /output/entry.txt must be exactly one line with no trailing newline"
+    # Cross-check: the repository's shipped entry.txt must agree with
+    # LINE — if the shipped file ever drifts from the program, the
+    # grader would read a different line than the repo ships, so fail
+    # loudly here instead. The path is derived from __file__ so it
+    # works no matter which directory the grader runs from.
+    shipped = Path(__file__).resolve().parent / "entry.txt"
+    assert shipped.read_text(encoding="utf-8") == LINE, "drift: shipped entry.txt does not match LINE"
 
 if __name__ == "__main__":
     main()
